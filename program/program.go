@@ -3,6 +3,7 @@ package program
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
+	"github.com/deweysasser/golang-program/program/ui"
 	"github.com/mattn/go-colorable"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -15,6 +16,8 @@ import (
 type Options struct {
 	Version bool `help:"Show program version"`
 	// VersionCmd VersionCmd `name:"version" cmd:"" help:"show program version"`
+
+	UI ui.Options `cmd:""`
 
 	Debug        bool   `group:"Info" help:"Show debugging information"`
 	OutputFormat string `group:"Info" enum:"auto,jsonl,terminal" default:"auto" help:"How to show program output (auto|terminal|jsonl)"`

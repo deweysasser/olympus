@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.meta.Name}}</title>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+</head>
+<body>
+<h1>Welcome to {{.meta.Name}}</h1>
+
+{{template "content" . }}
+
+<hr/>
+Powered by {{.meta.Name}}
+</body>
+</html>
