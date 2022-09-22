@@ -12,7 +12,9 @@ require (
 )
 
 require (
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/floatdrop/lru v1.3.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/go-version v1.5.0 // indirect
 	github.com/hashicorp/terraform-json v0.14.0 // indirect
