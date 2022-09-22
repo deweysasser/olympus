@@ -20,16 +20,16 @@ type RowName string
 // CreateTable parses out a set of summaries and arranges it for nice display
 func CreateTable(summaries []terraform.PlanSummary) *ChangeTable {
 	tab := &ChangeTable{}
-	table := make(map[terraform.PlanSummary]map[RowName]terraform.PlanSummary)
+	table := make(map[string]map[RowName]terraform.PlanSummary)
 
 	rowNameMap := make(map[string]bool)
 
 	for _, s := range summaries {
 		tab.Columns = append(tab.Columns, s.Name())
-		table[s] = make(map[RowName]terraform.PlanSummary)
+		table[s.Name()] = make(map[RowName]terraform.PlanSummary)
 
 		for _, child := range s.Children() {
-			table[s][RowName(child.Name())] = child
+			table[s.Name()][RowName(child.Name())] = child
 			rowNameMap[child.Name()] = true
 		}
 	}
@@ -48,8 +48,8 @@ func CreateTable(summaries []terraform.PlanSummary) *ChangeTable {
 
 	for _, rowName := range rowNames {
 		row := Row{Name: rowName, Contents: make([]terraform.PlanSummary, 0)}
-		for _, s := range summaries {
-			row.Contents = append(row.Contents, table[s][rowName])
+		for _, sumName := range tab.Columns {
+			row.Contents = append(row.Contents, table[sumName][rowName])
 		}
 		tab.Rows = append(tab.Rows, row)
 	}
