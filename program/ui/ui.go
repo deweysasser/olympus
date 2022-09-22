@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -56,6 +57,7 @@ func (ui *Options) Run() error {
 		return err
 	}
 
+	server.PathPrefix("/static").HandlerFunc(ui.ServeStatic)
 	server.PathPrefix("/").HandlerFunc(ui.Render)
 
 	log.Debug().Int("port", ui.Port).Msg("Server listening")
@@ -72,7 +74,7 @@ func (ui *Options) uiFilePath(path string) string {
 	return fmt.Sprintf("%s/%s", ui.TemplatePath, path)
 }
 
-func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
+func (ui *Options) ServeStatic(writer http.ResponseWriter, request *http.Request) {
 	log := log.Logger.With().Str("uri", request.RequestURI).Logger()
 
 	path := ui.uiFilePath(request.RequestURI[1:])
@@ -84,7 +86,14 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 		if serveStaticFile(writer, request, path, log) {
 			return
 		}
+	} else {
+		http.NotFound(writer, request)
 	}
+
+}
+
+func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
+	log := log.Logger.With().Str("uri", request.RequestURI).Logger()
 
 	dir := "data"
 	if request.RequestURI != "/" {
@@ -113,8 +122,28 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 
 }
 
+func mimetype(file string) string {
+	i := strings.LastIndex(strings.ToLower(file), ".")
+	if i < 1 {
+		return "text/plain"
+	}
+
+	s := file[i+1:]
+	log.Debug().Str("path", file).Str("ext", s).Msg("Finding mimetype")
+	switch s {
+	case "jpg":
+		return "image/jpg"
+	case "png":
+		return "image/png"
+	case "css":
+		return "text/css"
+	default:
+		return "text/plain"
+	}
+}
+
 func serveStaticFile(writer http.ResponseWriter, request *http.Request, path string, log zerolog.Logger) bool {
-	writer.Header().Add("Content-Type", "text/css")
+	writer.Header().Add("Content-Type", mimetype(path))
 	p := make([]byte, 2048)
 	f, err := os.Open(path)
 	if err != nil {

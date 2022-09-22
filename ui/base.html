@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{.meta.Name}}</title>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="/static/stylesheet.css">
 </head>
 <body>
 <h1>Welcome to {{.meta.Name}}</h1>
@@ -12,6 +12,8 @@
 {{template "content" . }}
 </div>
 <hr/>
-Powered by {{.meta.Name}}
+<div class="footer">
+    Powered by <a href="https://github.com/deweysasser/olympus"> {{.meta.Name}}</a>
+</div>
 </body>
 </html>

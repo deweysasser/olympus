@@ -20,9 +20,7 @@
                 {{with .Changes -}}
                     <td class="{{.Highest}}">
                         {{if .HasAny -}}
-                        Add: {{.Added}} Change: {{.Updated}} Delete: {{.Deleted}}
-                        {{ else -}}
-                        Up To Date
+                        +{{.Added}} ~{{.Updated}} -{{.Deleted}}
                         {{ end -}}
                     </td>
                 {{end -}}

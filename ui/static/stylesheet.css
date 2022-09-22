@@ -11,13 +11,28 @@ h1 {
 }
 
 table.changes {
-    background-color: #00a9e0;
-    alignment: center;
+    background-color: lightblue;
+    padding: 1ex;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 table.changes, table.changes tr, table.changes td {
     border: 1px solid black;
 }
+
+td {
+    padding-left: 2px;
+    padding-right: 2px;
+    text-align: center;
+}
+
+
+td.label {
+    padding: 1px;
+    text-align: left;
+}
+
 
 td.label { font-weight: bold}
 td.nodata { background-color: gray}
@@ -25,3 +40,7 @@ td.none { background-color: green}
 td.added { background-color: blue}
 td.updated { background-color: yellow}
 td.deleted { background-color: red}
+
+.footer {
+    text-align: right;
+}
