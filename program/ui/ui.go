@@ -2,7 +2,7 @@ package ui
 
 import (
 	"fmt"
-	"github.com/deweysasser/golang-program/terraform"
+	"github.com/deweysasser/olympus/terraform"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

@@ -3,7 +3,7 @@ package program
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
-	"github.com/deweysasser/golang-program/program/ui"
+	"github.com/deweysasser/olympus/program/ui"
 	"github.com/mattn/go-colorable"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

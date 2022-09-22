@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/deweysasser/golang-program/terraform"
+	"github.com/deweysasser/olympus/terraform"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
