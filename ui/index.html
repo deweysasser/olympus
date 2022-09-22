@@ -1,4 +1,37 @@
 {{template "base.html" .}}
 {{define "content"}}
-Hello Terraform!
+
+<table class="changes">
+    {{ $rows := .data.Rows}}
+    <tr>
+        <th>Plane</th>
+        {{- range .data.Columns -}}
+        <th>{{.}}</th>
+        {{ end -}}
+    </tr>
+
+    {{range .data.Rows}}
+    <tr>
+    <td class="label">
+        {{.Name}}
+    </td>
+        {{range .Contents -}}
+            {{if . -}}
+                {{with .Changes -}}
+                    <td class="{{.Highest}}">
+                        {{if .HasAny -}}
+                        Add: {{.Added}} Change: {{.Updated}} Delete: {{.Deleted}}
+                        {{ else -}}
+                        Up To Date
+                        {{ end -}}
+                    </td>
+                {{end -}}
+            {{else -}}
+            <td class="nodata"/>
+            {{end -}}
+        {{end -}}
+    </tr>
+    {{end -}}
+
+</table>
 {{end}}

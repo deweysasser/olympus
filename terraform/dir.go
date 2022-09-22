@@ -14,21 +14,21 @@ func (p *PlanDir) Name() string {
 	return p.name
 }
 
-func (J *PlanDir) Children() []PlanSummary {
-	return J.children
+func (p *PlanDir) Children() []PlanSummary {
+	return p.children
 }
 
-func (p *PlanDir) Changes() (int, int, int) {
-	var toadd, toupdate, todelete int
+func (p *PlanDir) Changes() Changes {
+	var changes Changes
 
 	for _, c := range p.children {
-		a, u, d := c.Changes()
-		toadd += a
-		toupdate += u
-		todelete += d
+		c := c.Changes()
+		changes.Added += c.Added
+		changes.Updated += c.Updated
+		changes.Deleted += c.Deleted
 	}
 
-	return toadd, toupdate, todelete
+	return changes.Summarize()
 }
 
 func (p *PlanDir) UpToDate() bool {

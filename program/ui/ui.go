@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/deweysasser/golang-program/terraform"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -73,33 +75,42 @@ func (ui *Options) uiFilePath(path string) string {
 func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 	log := log.Logger.With().Str("uri", request.RequestURI).Logger()
 
-	log.Debug().Msg("Handling")
-	if request.RequestURI == "/" {
-		data := map[string]any{
-			"meta": ui.meta,
-		}
-		err := ui.templates.ExecuteTemplate(writer, "index.html", data)
-		if err != nil {
-			log.Error().Err(err).Msg("Error evaluating template")
-		}
-
-		return
-	}
-
 	path := ui.uiFilePath(request.RequestURI[1:])
 
 	log = log.With().Str("path", path).Logger()
 
-	log.Debug().Msg("Examining")
-	if _, err := os.Stat(path); err == nil {
+	if info, err := os.Stat(path); err == nil && !info.IsDir() {
 		log.Debug().Msg("Serving static file")
 		if serveStaticFile(writer, request, path, log) {
 			return
 		}
-	} else {
-		log.Debug().Msg("File does not exist")
-		http.NotFound(writer, request)
 	}
+
+	dir := "data"
+	if request.RequestURI != "/" {
+		dir = filepath.Join(dir, request.RequestURI[1:])
+	}
+
+	log.Debug().Str("data_dir", dir).Msg("Reading plan data")
+
+	summaries, err := terraform.ReadDir(dir)
+	if err != nil {
+		http.NotFound(writer, request)
+		return
+	}
+
+	data := map[string]any{
+		"meta": ui.meta,
+		"data": CreateTable(summaries.Children()),
+	}
+
+	err = ui.templates.ExecuteTemplate(writer, "index.html", data)
+	if err != nil {
+		log.Error().Err(err).Msg("Error evaluating template")
+	}
+
+	return
+
 }
 
 func serveStaticFile(writer http.ResponseWriter, request *http.Request, path string, log zerolog.Logger) bool {

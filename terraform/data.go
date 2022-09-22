@@ -14,9 +14,29 @@ type PlanSummary interface {
 	// Name is the name of the grouping (environment, plane, whatever)
 	Name() string
 	// Changes calculates the nubmer of additions, changes, and deletions
-	Changes() (int, int, int)
+	Changes() Changes
 	UpToDate() bool
 	Children() []PlanSummary
+}
+
+type Changes struct {
+	Added, Updated, Deleted int
+	HasAny                  bool
+	Highest                 string
+}
+
+func (c Changes) Summarize() Changes {
+	c.HasAny = c.Added+c.Updated+c.Deleted > 0
+	if c.Deleted > 0 {
+		c.Highest = "deleted"
+	} else if c.Updated > 0 {
+		c.Highest = "updated"
+	} else if c.Added > 0 {
+		c.Highest = "added"
+	} else {
+		c.Highest = "none"
+	}
+	return c
 }
 
 func (J *JSonPlanSummary) Children() []PlanSummary {
@@ -32,7 +52,7 @@ func (J *JSonPlanSummary) Name() string {
 	return J.name
 }
 
-func (J *JSonPlanSummary) Changes() (int, int, int) {
+func (J *JSonPlanSummary) Changes() Changes {
 	var create, update, deletes int
 	for _, rc := range J.ResourceChanges {
 		if rc.Change.Actions.Create() {
@@ -47,7 +67,7 @@ func (J *JSonPlanSummary) Changes() (int, int, int) {
 		}
 	}
 
-	return create, update, deletes
+	return Changes{Added: create, Updated: update, Deleted: deletes}.Summarize()
 }
 
 func (J *JSonPlanSummary) UpToDate() bool {

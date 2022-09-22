@@ -1,8 +1,27 @@
 html {
-    background-color: #00a9e0;
-    margin: 3em;
+    margin: 1em;
+}
+
+div.page {
+    margin: 1em;
 }
 
 h1 {
     text-align: center;
 }
+
+table.changes {
+    background-color: #00a9e0;
+    alignment: center;
+}
+
+table.changes, table.changes tr, table.changes td {
+    border: 1px solid black;
+}
+
+td.label { font-weight: bold}
+td.nodata { background-color: gray}
+td.none { background-color: green}
+td.added { background-color: blue}
+td.updated { background-color: yellow}
+td.deleted { background-color: red}

@@ -14,9 +14,9 @@ func TestReadPlan(t *testing.T) {
 
 	assert.Equal(t, 0, len(json.Variables))
 	assert.False(t, json.UpToDate())
-	adds, updates, deletes := json.Changes()
+	c := json.Changes()
 
-	assert.Equal(t, 0, adds)
-	assert.Equal(t, 0, updates)
-	assert.Equal(t, 1, deletes)
+	assert.Equal(t, 0, c.Added)
+	assert.Equal(t, 0, c.Updated)
+	assert.Equal(t, 1, c.Deleted)
 }
