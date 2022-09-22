@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"github.com/deweysasser/olympus/middleware"
 	"github.com/deweysasser/olympus/terraform"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
@@ -18,7 +19,8 @@ import (
 type Options struct {
 	Port            int           `help:"Port on which to listen" default:"8080"`
 	TemplateReloads time.Duration `help:"frequency at which to reload templates" default:"500ms"`
-	TemplatePath    string        `help:"path for HTML templates" type:"existingdir" default:"ui"`
+	TemplatePath    string        `help:"path for HTML templates" type:"exist ingdir" default:"ui"`
+	DataPath        string        `help:"Path to find data" type:"existingdir" default:"data"`
 
 	templates *template.Template
 	Meta      SiteMeta `embed:"" prefix:"site."`
@@ -31,7 +33,7 @@ type SiteMeta struct {
 func (ui *Options) Run() error {
 	server := mux.NewRouter()
 
-	server.Use(loggingMiddleware)
+	server.Use(middleware.RequestLogger)
 
 	var err error
 	ui.templates, err = ui.parseTemplates()
@@ -52,6 +54,10 @@ func (ui *Options) Run() error {
 		log.Fatal().Err(err).Msg("Failed to parse templates")
 		return err
 	}
+
+	server.Path("/status").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write([]byte("alive"))
+	})
 
 	server.PathPrefix("/static").HandlerFunc(ui.ServeStatic)
 	server.PathPrefix("/").HandlerFunc(ui.Render)
@@ -91,7 +97,7 @@ func (ui *Options) ServeStatic(writer http.ResponseWriter, request *http.Request
 func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 	log := log.Logger.With().Str("uri", request.RequestURI).Logger()
 
-	dir := "data"
+	dir := ui.DataPath
 	if request.RequestURI != "/" {
 		dir = filepath.Join(dir, request.RequestURI[1:])
 	}

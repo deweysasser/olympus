@@ -3,6 +3,8 @@ package program
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
+	"github.com/deweysasser/olympus/program/node"
+	"github.com/deweysasser/olympus/program/server"
 	"github.com/deweysasser/olympus/program/ui"
 	"github.com/mattn/go-colorable"
 	"github.com/rs/zerolog"
@@ -17,7 +19,9 @@ type Options struct {
 	Version bool `help:"Show program version"`
 	// VersionCmd VersionCmd `name:"version" cmd:"" help:"show program version"`
 
-	UI ui.Options `cmd:""`
+	UI     ui.Options     `cmd:"" help:"run the web UI server"`
+	Node   node.Options   `cmd:"" help:"Run the node local process to make plans and upload them to the server"`
+	Server server.Options `cmd:"" help:"Run the data server"`
 
 	Debug        bool   `group:"Info" help:"Show debugging information"`
 	OutputFormat string `group:"Info" enum:"auto,jsonl,terminal" default:"auto" help:"How to show program output (auto|terminal|jsonl)"`

@@ -37,7 +37,7 @@ td.label {
 td.label { font-weight: bold}
 td.nodata { background-color: gray}
 td.none { background-color: green}
-td.added { background-color: blue}
+td.added { background-color: lightgreen}
 td.updated { background-color: yellow}
 td.deleted { background-color: red}
 

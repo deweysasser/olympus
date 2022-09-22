@@ -34,6 +34,8 @@ func CreateTable(summaries []terraform.PlanSummary) *ChangeTable {
 		}
 	}
 
+	sort.Strings(tab.Columns)
+
 	var rowNames []RowName
 
 	for k, _ := range rowNameMap {
