@@ -36,6 +36,10 @@ func (options *Options) Run() error {
 	log.Debug().Int("parallel", options.Parallel).Msg("Running plans concurrently")
 	wg := sizedwaitgroup.New(options.Parallel)
 
+	durations := make(chan time.Duration, 10000)
+
+	start := time.Now()
+
 	for _, dir := range options.Directories {
 		wg.Add()
 		go func(dir string) {
@@ -48,11 +52,31 @@ func (options *Options) Run() error {
 				log.Info().Str("dir", dir).Msg("Directory is not a directory.  Skipping")
 				return
 			}
+			start := time.Now()
 			options.processDir(dir)
+			durations <- time.Since(start)
 		}(dir)
 	}
 
 	wg.Wait()
+	close(durations)
+
+	fmt.Print("Durations:")
+	var total time.Duration
+	var count int64
+	for d := range durations {
+		total = total + d
+		count++
+		fmt.Print(" ", d.String())
+	}
+
+	average := total.Milliseconds() / count
+	aDur := time.Duration(average) * time.Millisecond
+
+	fmt.Println("")
+	fmt.Println("Total duration", time.Since(start).String())
+	fmt.Println("Average duration", aDur.String())
+	fmt.Println("planes ", count)
 
 	return nil
 }
