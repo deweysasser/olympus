@@ -21,18 +21,14 @@ type Options struct {
 	TemplatePath    string        `help:"path for HTML templates" type:"existingdir" default:"ui"`
 
 	templates *template.Template
-	meta      SiteMeta
+	Meta      SiteMeta `embed:"" prefix:"site."`
 }
 
 type SiteMeta struct {
-	Name string
+	Name string `help:"Site name for display on tab" default:"Olympus"`
 }
 
 func (ui *Options) Run() error {
-
-	ui.meta = SiteMeta{
-		Name: "Olympus",
-	}
 	server := mux.NewRouter()
 
 	server.Use(loggingMiddleware)
@@ -109,7 +105,7 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	data := map[string]any{
-		"meta": ui.meta,
+		"site": ui.Meta,
 		"data": CreateTable(summaries.Children()),
 	}
 

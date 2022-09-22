@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{.meta.Name}}</title>
+    {{if eq .site.Name "Olympus" -}}
+        <title>Olympus</title>
+    {{else -}}
+        <title>Olympus: {{.site.Name}}</title>
+    {{end -}}
     <link rel="stylesheet" type="text/css" href="/static/stylesheet.css">
 </head>
 <body>
-<h1>Welcome to {{.meta.Name}}</h1>
+<h1>{{.site.Name}}</h1>
 
 <div class="page">
 {{template "content" . }}
 </div>
 <hr/>
 <div class="footer">
-    Powered by <a href="https://github.com/deweysasser/olympus"> {{.meta.Name}}</a>
+    Powered by <a href="https://github.com/deweysasser/olympus"> Olympus</a>
 </div>
 </body>
 </html>
