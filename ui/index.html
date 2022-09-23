@@ -17,10 +17,13 @@
     </td>
         {{range .Contents -}}
             {{if . -}}
-                {{with .Changes -}}
-                    <td class="{{.Highest}}">
-                        {{if .HasAny -}}
-                        +{{.Added}} ~{{.Updated}} -{{.Deleted}}
+                {{ $id := print .ColumnName "---" .RowName }}
+                {{with .Summary -}}
+                    <td class="{{.Changes.Highest}}">
+                        {{if .Changes.HasAny -}}
+                        <div class="popup" onclick="myFunction('{{$id}}')">+{{.Changes.Added}} ~{{.Changes.Updated}} -{{.Changes.Deleted}}
+                            <span class="popuptext" id="{{$id}}">{{.ChangedResources}}</span>
+                        </div>
                         {{ end -}}
                     </td>
                 {{end -}}

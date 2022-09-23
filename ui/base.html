@@ -8,6 +8,13 @@
         <title>Olympus: {{.site.Name}}</title>
     {{end -}}
     <link rel="stylesheet" type="text/css" href="/static/stylesheet.css">
+    <script>
+        // When the user clicks on <div>, open the popup
+        function myFunction(id) {
+            var popup = document.getElementById(id);
+            popup.classList.toggle("show");
+        }
+    </script>
 </head>
 <body>
 <h1>{{.site.Name}}</h1>

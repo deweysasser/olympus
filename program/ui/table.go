@@ -12,7 +12,13 @@ type ChangeTable struct {
 
 type Row struct {
 	Name     RowName
-	Contents []terraform.PlanSummary
+	Contents []*Cell
+}
+
+type Cell struct {
+	Summary    terraform.PlanSummary
+	RowName    RowName
+	ColumnName string
 }
 
 type RowName string
@@ -47,9 +53,18 @@ func CreateTable(summaries []terraform.PlanSummary) *ChangeTable {
 	})
 
 	for _, rowName := range rowNames {
-		row := Row{Name: rowName, Contents: make([]terraform.PlanSummary, 0)}
+		row := Row{Name: rowName, Contents: make([]*Cell, 0)}
 		for _, sumName := range tab.Columns {
-			row.Contents = append(row.Contents, table[sumName][rowName])
+			summary := table[sumName][rowName]
+			if summary != nil {
+				row.Contents = append(row.Contents, &Cell{
+					Summary:    summary,
+					RowName:    rowName,
+					ColumnName: sumName,
+				})
+			} else {
+				row.Contents = append(row.Contents, nil)
+			}
 		}
 		tab.Rows = append(tab.Rows, row)
 	}
