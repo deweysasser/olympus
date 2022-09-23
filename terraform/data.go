@@ -56,7 +56,7 @@ func (J *JSonPlanSummary) ChangedResources() string {
 	for _, rc := range J.ResourceChanges {
 		a := rc.Change.Actions
 		if !a.NoOp() && !a.Read() {
-			resources = append(resources, fmt.Sprintf("%s%s.%s", changePrefix(rc.Change.Actions), rc.Type, rc.Name))
+			resources = append(resources, fmt.Sprintf("%s%s.%s.%s", changePrefix(rc.Change.Actions), rc.ModuleAddress, rc.Type, rc.Name))
 		}
 	}
 
