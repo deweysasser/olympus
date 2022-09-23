@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type PlanSummary interface {
@@ -17,6 +18,7 @@ type PlanSummary interface {
 	Changes() Changes
 	UpToDate() bool
 	Children() []PlanSummary
+	ChangedResources() string
 }
 
 type Changes struct {
@@ -48,6 +50,36 @@ type JSonPlanSummary struct {
 	name string
 }
 
+func (J *JSonPlanSummary) ChangedResources() string {
+	var resources []string
+
+	for _, rc := range J.ResourceChanges {
+		a := rc.Change.Actions
+		if !a.NoOp() && !a.Read() {
+			resources = append(resources, fmt.Sprintf("%s%s.%s", changePrefix(rc.Change.Actions), rc.Type, rc.Name))
+		}
+	}
+
+	return strings.Join(resources, "\n")
+}
+
+func changePrefix(change tfjson.Actions) string {
+	switch {
+	case change.Create():
+		return "+"
+	case change.Update():
+		return "~"
+	case change.Delete():
+		return "-"
+	case change.DestroyBeforeCreate():
+		return "-+"
+	case change.CreateBeforeDestroy():
+		return "+-"
+	default:
+		return "?"
+	}
+}
+
 func (J *JSonPlanSummary) Name() string {
 	return J.name
 }
@@ -55,14 +87,22 @@ func (J *JSonPlanSummary) Name() string {
 func (J *JSonPlanSummary) Changes() Changes {
 	var create, update, deletes int
 	for _, rc := range J.ResourceChanges {
-		if rc.Change.Actions.Create() {
+		if rc.Type == "local_file" {
+			// Local files are not interesting changes for our purposes
+			continue
+		}
+		switch {
+		case rc.Change.Actions.Create():
 			create++
-		}
-		if rc.Change.Actions.Update() {
+		case rc.Change.Actions.Delete():
+			deletes++
+		case rc.Change.Actions.Update():
 			update++
-		}
-
-		if rc.Change.Actions.Delete() {
+		case rc.Change.Actions.CreateBeforeDestroy():
+			create++
+			deletes++
+		case rc.Change.Actions.DestroyBeforeCreate():
+			create++
 			deletes++
 		}
 	}

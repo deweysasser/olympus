@@ -5,6 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -33,6 +34,16 @@ func (p *PlanDir) Changes() Changes {
 	}
 
 	return changes.Summarize()
+}
+
+func (p *PlanDir) ChangedResources() string {
+	var resources []string
+
+	for _, rc := range p.children {
+		resources = append(resources, rc.ChangedResources())
+	}
+
+	return strings.Join(resources, "\n")
 }
 
 func (p *PlanDir) UpToDate() bool {
