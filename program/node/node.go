@@ -2,6 +2,7 @@ package node
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/deweysasser/olympus/git"
@@ -14,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -26,9 +28,10 @@ type Options struct {
 }
 
 type Terraform struct {
-	PlanCommand     string `aliases:"plan" help:"Command to run in the terraform directory to produce the plan" default:"terraform plan -o plan.bin"`
-	ShowPlanCommand string `aliases:"show-plan" help:"Command to run to output the plan in terraform json" default:"terraform show plan --json plan.bin"`
-	PlanFile        string `aliases:"file" help:"Name of the created plan file" default:"plan.bin"`
+	PlanCommand     string        `aliases:"plan" help:"Command to run in the terraform directory to produce the plan" default:"terraform plan -o plan.bin"`
+	ShowPlanCommand string        `aliases:"show-plan" help:"Command to run to output the plan in terraform json" default:"terraform show plan --json plan.bin"`
+	PlanFile        string        `aliases:"file" help:"Name of the created plan file" default:"plan.bin"`
+	RunTimeout      time.Duration `help:"Maximum time to allow a command to run" default:"5m"`
 }
 
 func (options *Options) Run() error {
@@ -127,7 +130,10 @@ func (options *Options) processDir(dir string) {
 
 func (options *Options) getPlan(dir string) (*tfjson.Plan, error) {
 	cmd := strings.Split(options.Terraform.PlanCommand, " ")
-	command := exec.Command(cmd[0], cmd[1:]...)
+	ctx, cancel := context.WithTimeout(context.Background(), options.Terraform.RunTimeout+60*time.Second)
+	defer cancel()
+
+	command := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
 	command.Dir = dir
 
 	log := log.Logger.With().Str("dir", dir).Logger()
@@ -137,20 +143,28 @@ func (options *Options) getPlan(dir string) (*tfjson.Plan, error) {
 	clog := log.With().Str("command", strings.Join(cmd, " ")).Logger()
 
 	clog.Debug().Msg("running command")
+
+	done := sigintAfter(options, command)
 	err = command.Run()
+	done()
 	if err != nil {
 		log.Error().Err(err).Msg("Error running command")
 		return nil, err
 	}
 
 	cmd = strings.Split(options.Terraform.ShowPlanCommand, " ")
-	command = exec.Command(cmd[0], cmd[1:]...)
+	ctx, cancel = context.WithTimeout(context.Background(), options.Terraform.RunTimeout)
+	defer cancel()
+
+	command = exec.CommandContext(ctx, cmd[0], cmd[1:]...)
 	command.Dir = dir
 
 	clog = log.With().Str("command", strings.Join(cmd, " ")).Logger()
 
 	clog.Debug().Msg("running command")
+	done = sigintAfter(options, command)
 	bytes, err := command.Output()
+	done()
 
 	if err != nil {
 		clog.Error().Err(err).Msg("Error running command")
@@ -167,4 +181,21 @@ func (options *Options) getPlan(dir string) (*tfjson.Plan, error) {
 	plan.Variables = make(map[string]*tfjson.PlanVariable)
 
 	return &plan, nil
+}
+
+func sigintAfter(options *Options, command *exec.Cmd) func() {
+	done := make(chan interface{})
+	go func() {
+		select {
+		case <-done:
+			return
+		case <-time.After(options.Terraform.RunTimeout):
+			log.Debug().Str("timeout", options.Terraform.RunTimeout.String()).Msg("command exceeded run time.  Sending interrupt")
+			command.Process.Signal(syscall.SIGINT)
+		}
+	}()
+
+	return func() {
+		close(done)
+	}
 }
