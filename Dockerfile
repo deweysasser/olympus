@@ -1,6 +1,6 @@
 ARG GO_VERSION=1.19
 FROM golang:${GO_VERSION} as builder
-ARG PROGRAM=nothing
+ARG PROGRAM=olympus
 ARG VERSION=development
 
 RUN mkdir /src /output
