@@ -13,6 +13,7 @@ REPO=$(shell go list | head -n 1)
 IMAGE=$(BASENAME)
 VERSION ?= $(shell git describe --tags --always --dirty)
 DOCKER=docker
+CHGLOG=git chglog
 
 .PHONY: $(PROGRAM)
 
@@ -38,7 +39,7 @@ vet:
 
 changelog: CHANGELOG.md
 CHANGELOG.md: .chglog/config.yml
-	git chglog $(LAST_RELEASE) >$@.tmp
+	$(CHGLOG) $(LAST_RELEASE) >$@.tmp
 	mv -f $@.tmp $@
 
 .chglog/config.yml: go.mod

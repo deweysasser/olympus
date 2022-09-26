@@ -73,7 +73,7 @@ jobs:
 
     - name: Generate Changelog for ${{ github.ref_name }}
       id: generate-changelog
-      run: make CHANGELOG.md
+      run: make CHANGELOG.md CHGLOG=./git-chglog
 
     - name: Create Release
       id: create_release
