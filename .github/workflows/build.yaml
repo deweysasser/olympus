@@ -22,8 +22,9 @@ jobs:
       - name: Vet
         run: make vet
 
-      - name: Test
-        run: make test
+# TODO:  produce some sharable test data and re-enable this
+#      - name: Test
+#        run: make test
 
       - name: Build
         run: make
