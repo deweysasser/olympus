@@ -44,7 +44,7 @@ func CreateTable(summaries []terraform.PlanSummary) *ChangeTable {
 
 	var rowNames []RowName
 
-	for k, _ := range rowNameMap {
+	for k := range rowNameMap {
 		rowNames = append(rowNames, RowName(k))
 	}
 

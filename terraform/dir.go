@@ -48,7 +48,7 @@ func (p *PlanDir) ChangedResources() string {
 
 func (p *PlanDir) UpToDate() bool {
 	for _, c := range p.children {
-		if c.UpToDate() == false {
+		if !c.UpToDate() {
 			return false
 		}
 	}

@@ -44,7 +44,7 @@ func (ui *Options) Run() error {
 			if t, err := ui.parseTemplates(); err != nil {
 				log.Error().Err(err).Msg("Failed to reload templates")
 			} else {
-				//log.Debug().Msg("templates reloaded")
+				// log.Debug().Msg("templates reloaded")
 				ui.templates = t
 			}
 		}
@@ -119,9 +119,6 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Error().Err(err).Msg("Error evaluating template")
 	}
-
-	return
-
 }
 
 func mimetype(file string) string {
@@ -168,5 +165,4 @@ func serveStaticFile(writer http.ResponseWriter, request *http.Request, path str
 			log.Error().Err(err).Msg("Error reading file during response")
 		}
 	}
-	return false
 }
