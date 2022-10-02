@@ -154,6 +154,8 @@ server needs.
 * change server to [GIN framework](https://gin-gonic.com/)
 * create server data needs publishing mechanism
 * secure communication between agent and server with hashed, pre-shared secrets
+* use https://github.com/shirou/gopsutil or https://github.com/mackerelio/go-osstat have the
+  agent hit a target CPU instead of a fixed number of parallel processes
 
 ## Milestones
 
@@ -182,11 +184,11 @@ this thing.
 
 Agent auto-scaling facilitated. This should substantially reduce how out of date plans are.
 
-### Next + ?
+### Next ++
 
 Distinguish changes from drift
 
-### Next + ?
+### Next ++
 
 Multiple branches supported, so that we can get an idea of the consequences of a specific PR before
 it's merged. This should be in a RESTful *and* predictable URL so that it can be put on e.g. a PR
@@ -199,7 +201,12 @@ no changes, just update timestamp" message.)
 
 It would be really nice if we could gate a PR on a plan being available for all impacted components.
 
-### Milestone Omega - X
+### Next ++
+
+Can "diff" changes between multiple branches -- i.e. show a branch and show only the changes it
+would make less the changes the main trunk would also make.
+
+### Far Future
 
 A user can "approve" a plan in the UI and an agent will apply it.
 
