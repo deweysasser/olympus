@@ -8,9 +8,7 @@ import (
 
 func TestReadPlan(t *testing.T) {
 
-	var json PlanSummary
-
-	json = &JSonPlanSummary{
+	var json PlanSummary = &JSonPlanSummary{
 		Plan: &tfjson.Plan{
 			ResourceChanges: []*tfjson.ResourceChange{
 				&tfjson.ResourceChange{Change: &tfjson.Change{
