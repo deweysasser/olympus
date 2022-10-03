@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/deweysasser/olympus/git"
-	"github.com/deweysasser/olympus/program/server"
+	"github.com/deweysasser/olympus/run"
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/remeh/sizedwaitgroup"
 	"github.com/rs/zerolog/log"
@@ -24,7 +24,7 @@ type Options struct {
 	Terraform   Terraform `embed:"" prefix:"terraform."`
 	Parallel    int       `help:"Number of processes to run in parallel" default:"1"`
 	Directories []string  `arg:"" help:"Directories in which to run terraform"`
-	ClipLast    int       `help:"Number of directories from the end path to use sending to server"`
+	ClipLast    int       `help:"Number of directories from the end path to use sending to poc-server"`
 }
 
 type Terraform struct {
@@ -88,14 +88,14 @@ func (options *Options) Run() error {
 func (options *Options) processDir(dir string) {
 
 	log := log.Logger.With().Str("dir", dir).Logger()
-	log.Debug().Msg("Processing dir")
+	log.Info().Msg("Processing dir")
 	sha, err := git.CurrentSHA(dir)
 
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get git HEAD sha")
 	}
 
-	run := &server.PlanRecord{Start: time.Now(), Hash: sha}
+	run := &run.PlanRecord{Start: time.Now(), CommitSHA: sha}
 
 	plan, err := options.getPlan(dir)
 	if err != nil {
@@ -121,7 +121,7 @@ func (options *Options) processDir(dir string) {
 	}
 
 	url := fmt.Sprintf("%s/%s", options.Collector, dir)
-	log.Debug().Str("url", url).Msg("Posting results")
+	log.Info().Str("url", url).Msg("Posting results")
 	_, err = http.Post(url, "text/json", bytes.NewReader(b))
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to send results")
