@@ -6,9 +6,12 @@ import (
 	"os/exec"
 )
 
-type CommitSHA string
+type SHA256 string
+type Repo string
+type Branch string
+type WorkingDir string
 
-func CurrentSHA(dir string) (CommitSHA, error) {
+func CurrentSHA(dir string) (SHA256, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = dir
 
@@ -20,5 +23,5 @@ func CurrentSHA(dir string) (CommitSHA, error) {
 		return "", errors.Wrap(err, "Error getting HEAD commit SHA")
 	}
 
-	return CommitSHA(bytes), nil
+	return SHA256(bytes), nil
 }

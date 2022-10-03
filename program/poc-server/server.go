@@ -1,11 +1,11 @@
-package server
+package poc_server
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/deweysasser/olympus/middleware"
 	"github.com/deweysasser/olympus/run"
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"io"
 	"io/fs"
@@ -21,20 +21,32 @@ type Options struct {
 }
 
 func (o *Options) Run() error {
+	server := o.createServer()
 
-	r := o.createServer()
-	return r.Run(fmt.Sprintf(":%d", o.Port))
+	log.Debug().Int("port", o.Port).Msg("Listening")
+	return http.ListenAndServe(fmt.Sprintf(":%d", o.Port), server)
 }
 
-func (o *Options) createServer() *gin.Engine {
-	r := gin.New()
-	//r.Use(ginzerolog.Logger("gin"))
-	r.Use(middleware.GinRequestLogger())
-	r.GET("/status", func(context *gin.Context) {
-		context.JSON(200, gin.H{"status": "alive"})
+func (o *Options) createServer() *mux.Router {
+	server := mux.NewRouter()
+
+	server.Use(middleware.RequestLogger)
+
+	server.Path("/status").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		alive := map[string]string{
+			"status": "alive",
+		}
+		bytes, err := json.Marshal(alive)
+		if err != nil {
+			writer.WriteHeader(500)
+		} else {
+			writer.Write(bytes)
+		}
 	})
 
-	return r
+	server.PathPrefix("/").Methods("POST").HandlerFunc(o.receive)
+
+	return server
 }
 
 func (o *Options) receive(writer http.ResponseWriter, request *http.Request) {
