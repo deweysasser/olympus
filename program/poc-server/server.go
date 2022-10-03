@@ -16,7 +16,7 @@ import (
 
 type Options struct {
 	Port          int    `help:"Port on which to listen" default:"8081"`
-	DataDirectory string `help:"Directory into which to write data" type:"existingdir" default:"received"`
+	DataDirectory string `help:"Directory into which to write data" type:"existingdir"`
 	fs            fs.FS  // file system to use for operations
 }
 

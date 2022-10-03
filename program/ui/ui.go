@@ -20,7 +20,7 @@ type Options struct {
 	Port            int           `help:"Port on which to listen" default:"8080"`
 	TemplateReloads time.Duration `help:"frequency at which to reload templates" default:"500ms"`
 	TemplatePath    string        `help:"path for HTML templates" type:"exist ingdir" default:"ui"`
-	DataPath        string        `help:"Path to find data" type:"existingdir" default:"data"`
+	DataPath        string        `help:"Path to find data" type:"existingdir"`
 
 	templates *template.Template
 	Meta      SiteMeta `embed:"" prefix:"site."`

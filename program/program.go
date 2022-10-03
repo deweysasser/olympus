@@ -20,10 +20,10 @@ type Options struct {
 	Version bool `help:"Show program version"`
 	// VersionCmd VersionCmd `name:"version" cmd:"" help:"show program version"`
 
-	UI         ui.Options         `cmd:"" help:"run the web UI poc-server"`
-	Node       node.Options       `cmd:"" help:"Run the node local process to make plans and upload them to the poc-server"`
 	PlanServer poc_server.Options `cmd:"" help:"Run the data poc-server"`
 	Server     server.Options     `cmd:"" help:"Run the data server"`
+	UI         ui.Options         `cmd:"" help:"run the web UI poc-server"`
+	Node       node.Options       `cmd:"" help:"Run the node local process to make plans and upload them to the poc-server"`
 
 	Debug        bool   `group:"Info" help:"Show debugging information"`
 	OutputFormat string `group:"Info" enum:"auto,jsonl,terminal" default:"auto" help:"How to show program output (auto|terminal|jsonl)"`

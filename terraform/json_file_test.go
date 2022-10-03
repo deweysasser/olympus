@@ -24,9 +24,9 @@ func TestReadPlan(t *testing.T) {
 	assert.False(t, json.UpToDate())
 	c := json.Changes()
 
-	assert.Equal(t, 0, c.ResourcesAdded)
-	assert.Equal(t, 0, c.ResourcesUpdated)
-	assert.Equal(t, 1, c.ResourcesDeleted)
+	assert.Equal(t, 0, c.Added)
+	assert.Equal(t, 0, c.Updated)
+	assert.Equal(t, 1, c.Deleted)
 
 	assert.True(t, c.HasAny())
 	assert.Equal(t, "deleted", c.Highest())

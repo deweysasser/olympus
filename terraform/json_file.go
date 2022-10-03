@@ -88,7 +88,7 @@ func (J *JSonPlanSummary) Changes() Changes {
 		}
 	}
 
-	return Changes{ResourcesAdded: create, ResourcesUpdated: update, ResourcesDeleted: deletes}
+	return Changes{Added: create, Updated: update, Deleted: deletes}
 }
 
 func (J *JSonPlanSummary) UpToDate() bool {

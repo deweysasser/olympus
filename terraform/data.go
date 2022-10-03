@@ -8,22 +8,22 @@ type SummaryData struct {
 }
 
 type Changes struct {
-	ResourcesAdded   int `json:"added"`
-	ResourcesUpdated int `json:"updated"`
-	ResourcesDeleted int `json:"deleted"`
+	Added   int `json:"added"`
+	Updated int `json:"updated"`
+	Deleted int `json:"deleted"`
 }
 
 func (c Changes) HasAny() bool {
-	return c.ResourcesAdded+c.ResourcesUpdated+c.ResourcesDeleted > 0
+	return c.Added+c.Updated+c.Deleted > 0
 }
 
 func (c Changes) Highest() string {
 	switch {
-	case c.ResourcesDeleted > 0:
+	case c.Deleted > 0:
 		return "deleted"
-	case c.ResourcesUpdated > 0:
+	case c.Updated > 0:
 		return "updated"
-	case c.ResourcesAdded > 0:
+	case c.Added > 0:
 		return "added"
 	default:
 		return "none"

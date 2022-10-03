@@ -28,9 +28,9 @@ func (p *PlanDir) Changes() Changes {
 
 	for _, c := range p.children {
 		c := c.Changes()
-		changes.ResourcesAdded += c.ResourcesAdded
-		changes.ResourcesUpdated += c.ResourcesUpdated
-		changes.ResourcesDeleted += c.ResourcesDeleted
+		changes.Added += c.Added
+		changes.Updated += c.Updated
+		changes.Deleted += c.Deleted
 	}
 
 	return changes
