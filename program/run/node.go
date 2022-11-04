@@ -21,12 +21,13 @@ import (
 )
 
 type Options struct {
-	Collector   string        `help:"collector address" default:"http://localhost:8080/plan"`
-	Command     []string      `sep:";" help:"sequences of commands to generate a plan JSON.  The final command should generate a terraform JSON format plan output" default:"terraform plan; terraform show -json plan"`
-	RunTimeout  time.Duration `help:"Maximum time to allow a command to run" default:"5m"`
-	Parallel    int           `help:"Number of processes to run in parallel" default:"1"`
-	Directories []string      `arg:"" help:"Directories in which to run terraform"`
-	ClipLast    int           `help:"Number of directories from the end path to use sending to poc-server"`
+	Collector  string        `help:"collector address" default:"http://localhost:8080/plan"`
+	Command    []string      `sep:";" help:"sequences of commands to generate a plan JSON.  The final command should generate a terraform JSON format plan output" default:"terraform plan; terraform show -json plan"`
+	RunTimeout time.Duration `help:"Maximum time to allow a command to run" default:"5m"`
+	Parallel   int           `help:"Number of processes to run in parallel" default:"1"`
+	ClipLast   int           `help:"Number of directories from the end path to use sending to poc-server" default:"2"`
+
+	Directories []string `arg:"" help:"Directories in which to run terraform"`
 }
 
 func (options *Options) Run() error {

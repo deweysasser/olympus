@@ -6,7 +6,23 @@ See the status of terraform plan across many components in many environments.
 
 Development.
 
-A proof-of-concept that has demonstrated utility but is not yet operationalized.
+A proof-of-concept that has demonstrated utility but is not yet operationalized. Most things are
+going to change.
+
+## Install
+
+```shell
+go get github.com/deweysasser/olympus@latest
+```
+
+## Quickstart
+
+```shell
+
+olympus server &
+olympus run --parallel 5 ~/code/terraform_projects/*/*
+open http://localhost:8080
+```
 
 ## Overview
 
@@ -154,8 +170,8 @@ server needs.
 * change server to [GIN framework](https://gin-gonic.com/)
 * create server data needs publishing mechanism
 * secure communication between agent and server with hashed, pre-shared secrets
-* use https://github.com/shirou/gopsutil or https://github.com/mackerelio/go-osstat have the
-  agent hit a target CPU instead of a fixed number of parallel processes
+* use https://github.com/shirou/gopsutil or https://github.com/mackerelio/go-osstat have the agent
+  hit a target CPU instead of a fixed number of parallel processes
 * Be able to compare to previous applies/times/SHAs
 
 ## Milestones
