@@ -18,3 +18,4 @@ olympus
 CHANGELOG.md
 data
 .DS_Store
+.Dockerfile.tmp
