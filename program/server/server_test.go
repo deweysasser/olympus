@@ -9,9 +9,7 @@ import (
 )
 
 func TestOptions_createServer(t *testing.T) {
-	o := &Options{
-		DataDirectory: "/",
-	}
+	o := &Options{}
 
 	router := o.createServer()
 
@@ -28,9 +26,7 @@ func TestOptions_createServer(t *testing.T) {
 }
 
 func Benchmark_Status(b *testing.B) {
-	o := &Options{
-		DataDirectory: "/",
-	}
+	o := &Options{}
 
 	router := o.createServer()
 

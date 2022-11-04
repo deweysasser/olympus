@@ -7,8 +7,8 @@ import (
 )
 
 type Options struct {
-	Port          int    `help:"Port on which to listen" default:"8081"`
-	DataDirectory string `help:"Directory into which to write data" type:"existingdir" default:"received"`
+	Port int `help:"Port on which to listen" default:"8081"`
+	// DataDirectory string `help:"Directory into which to write data" type:"existingdir" default:"received"`
 }
 
 func (o *Options) Run() error {

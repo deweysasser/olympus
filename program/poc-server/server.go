@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/deweysasser/olympus/middleware"
+	"github.com/deweysasser/olympus/program/ui"
 	"github.com/deweysasser/olympus/run"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -14,19 +15,24 @@ import (
 )
 
 type Options struct {
-	Port          int    `help:"Port on which to listen" default:"8081"`
-	DataDirectory string `help:"Directory into which to write data" type:"existingdir"`
+	ui.Options
 }
 
 func (o *Options) Run() error {
-	server := o.createServer()
+	server, err := o.createServer()
+	if err != nil {
+		return err
+	}
 
 	log.Debug().Int("port", o.Port).Msg("Listening")
 	return http.ListenAndServe(fmt.Sprintf(":%d", o.Port), server)
 }
 
-func (o *Options) createServer() *mux.Router {
-	server := mux.NewRouter()
+func (o *Options) createServer() (*mux.Router, error) {
+	server, err := o.Router()
+	if err != nil {
+		return nil, err
+	}
 
 	server.Use(middleware.RequestLogger)
 
@@ -42,13 +48,13 @@ func (o *Options) createServer() *mux.Router {
 		}
 	})
 
-	server.PathPrefix("/").Methods("POST").HandlerFunc(o.receive)
+	server.PathPrefix("/plan").Methods("POST").HandlerFunc(o.receive)
 
-	return server
+	return server, nil
 }
 
 func (o *Options) receive(writer http.ResponseWriter, request *http.Request) {
-	path := filepath.Join(o.DataDirectory, request.RequestURI[1:])
+	path := filepath.Join(o.DataPath, request.RequestURI[1:])
 	log := log.With().Str("path", path).Logger()
 
 	info, err := os.Stat(path)

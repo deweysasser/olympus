@@ -9,11 +9,10 @@ import (
 )
 
 func TestOptions_createServer(t *testing.T) {
-	o := &Options{
-		DataDirectory: "/",
-	}
+	o := &Options{}
 
-	router := o.createServer()
+	router, err := o.createServer()
+	assert.NoError(t, err)
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -28,11 +27,10 @@ func TestOptions_createServer(t *testing.T) {
 }
 
 func Benchmark_Status(b *testing.B) {
-	o := &Options{
-		DataDirectory: "/",
-	}
+	o := &Options{}
 
-	router := o.createServer()
+	router, err := o.createServer()
+	assert.NoError(b, err)
 
 	server := httptest.NewServer(router)
 	defer server.Close()

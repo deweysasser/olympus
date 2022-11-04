@@ -21,7 +21,7 @@ type PlanSummary interface {
 	ChangedResources() string
 }
 
-func (J *JSonPlanSummary) Children() []PlanSummary {
+func (j *JSonPlanSummary) Children() []PlanSummary {
 	return []PlanSummary{}
 }
 
@@ -31,12 +31,12 @@ type JSonPlanSummary struct {
 	name string
 }
 
-func (J *JSonPlanSummary) ChangedResources() string {
+func (j *JSonPlanSummary) ChangedResources() string {
 	var resources []string
 
-	for _, rc := range J.ResourceChanges {
+	for _, rc := range j.ResourceChanges {
 		a := rc.Change.Actions
-		if !a.NoOp() && !a.Read() {
+		if !a.NoOp() && !a.Read() && rc.Type != "local_file" {
 			resources = append(resources, fmt.Sprintf("%s%s.%s.%s", changePrefix(rc.Change.Actions), rc.ModuleAddress, rc.Type, rc.Name))
 		}
 	}
@@ -61,13 +61,13 @@ func changePrefix(change tfjson.Actions) string {
 	}
 }
 
-func (J *JSonPlanSummary) Name() string {
-	return J.name
+func (j *JSonPlanSummary) Name() string {
+	return j.name
 }
 
-func (J *JSonPlanSummary) Changes() Changes {
+func (j *JSonPlanSummary) Changes() Changes {
 	var create, update, deletes int
-	for _, rc := range J.ResourceChanges {
+	for _, rc := range j.ResourceChanges {
 		if rc.Type == "local_file" {
 			// Local files are not interesting changes for our purposes
 			continue
@@ -91,8 +91,8 @@ func (J *JSonPlanSummary) Changes() Changes {
 	return Changes{Added: create, Updated: update, Deleted: deletes}
 }
 
-func (J *JSonPlanSummary) UpToDate() bool {
-	return len(J.ResourceChanges) == 0
+func (j *JSonPlanSummary) UpToDate() bool {
+	return len(j.ResourceChanges) == 0
 }
 
 func ReadPlan(file string) (PlanSummary, error) {

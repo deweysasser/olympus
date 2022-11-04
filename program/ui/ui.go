@@ -1,26 +1,29 @@
 package ui
 
 import (
+	"embed"
 	"fmt"
 	"github.com/deweysasser/olympus/middleware"
 	"github.com/deweysasser/olympus/terraform"
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"html/template"
-	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
+
+//go:embed files
+var files embed.FS
 
 type Options struct {
 	Port            int           `help:"Port on which to listen" default:"8080"`
 	TemplateReloads time.Duration `help:"frequency at which to reload templates" default:"500ms"`
-	TemplatePath    string        `help:"path for HTML templates" type:"exist ingdir" default:"ui"`
-	DataPath        string        `help:"Path to find data" type:"existingdir"`
+	UIFilePath      string        `help:"path for HTML templates" type:"path" optional:"1"`
+	DataPath        string        `help:"Path to find data" type:"path" default:"received"`
 
 	templates *template.Template
 	Meta      SiteMeta `embed:"" prefix:"site."`
@@ -31,67 +34,126 @@ type SiteMeta struct {
 }
 
 func (ui *Options) Run() error {
-	server := mux.NewRouter()
+
+	server, err := ui.Router()
+	if err != nil {
+		return err
+	}
 
 	server.Use(middleware.RequestLogger)
 
-	var err error
+	log.Debug().Int("port", ui.Port).Msg("Server listening")
+
+	return http.ListenAndServe(fmt.Sprintf(":%d", ui.Port), server)
+}
+
+func (ui *Options) Router() (*mux.Router, error) {
+	server := mux.NewRouter()
+
+	d, err := os.Stat(ui.DataPath)
+
+	if err == nil {
+		if !d.IsDir() {
+			return nil, errors.New("Data directory not a directory: " + ui.DataPath)
+		}
+	} else if os.IsNotExist(err) {
+		log.Debug().Str("dir", ui.DataPath).Msg("Creating dir")
+		if e := os.MkdirAll(ui.DataPath, os.ModePerm); e != nil {
+			return nil, e
+		}
+	}
+
 	ui.templates, err = ui.parseTemplates()
 
-	go func() {
-		log.Debug().Str("every", ui.TemplateReloads.String()).Msg("Reloading templates periodically")
-		for range time.Tick(ui.TemplateReloads) {
-			if t, err := ui.parseTemplates(); err != nil {
-				log.Error().Err(err).Msg("Failed to reload templates")
-			} else {
-				// log.Debug().Msg("templates reloaded")
-				ui.templates = t
-			}
-		}
-	}()
-
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to parse templates")
-		return err
+		return nil, err
+	}
+
+	if ui.UIFilePath != "" {
+		go func() {
+			log.Debug().Str("every", ui.TemplateReloads.String()).Msg("Reloading templates periodically")
+			for range time.Tick(ui.TemplateReloads) {
+				if t, err := ui.parseTemplates(); err != nil {
+					log.Error().Err(err).Msg("Failed to reload templates")
+				} else {
+					// log.Debug().Msg("templates reloaded")
+					ui.templates = t
+				}
+			}
+		}()
 	}
 
 	server.Path("/status").HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("alive"))
 	})
 
-	server.PathPrefix("/static").HandlerFunc(ui.ServeStatic)
+	fs, err := ui.ServeStatic()
+
+	if err != nil {
+		return nil, err
+	}
+
+	server.PathPrefix("/static").Handler(fs)
 	server.PathPrefix("/").HandlerFunc(ui.Render)
 
-	log.Debug().Int("port", ui.Port).Msg("Server listening")
-	return http.ListenAndServe(fmt.Sprintf(":%d", ui.Port), server)
+	return server, nil
 }
 
 func (ui *Options) parseTemplates() (*template.Template, error) {
-	var err error
-	t, err := template.ParseGlob(ui.uiFilePath("*.html"))
-	return t, err
-}
+	if ui.UIFilePath != "" {
+		templates := filepath.Join(ui.UIFilePath, "templates")
 
-func (ui *Options) uiFilePath(path string) string {
-	return fmt.Sprintf("%s/%s", ui.TemplatePath, path)
-}
-
-func (ui *Options) ServeStatic(writer http.ResponseWriter, request *http.Request) {
-	log := log.Logger.With().Str("uri", request.RequestURI).Logger()
-
-	path := ui.uiFilePath(request.RequestURI[1:])
-
-	log = log.With().Str("path", path).Logger()
-
-	if info, err := os.Stat(path); err == nil && !info.IsDir() {
-		log.Debug().Msg("Serving static file")
-		if serveStaticFile(writer, request, path, log) {
-			return
+		info, err := os.Stat(templates)
+		if err != nil {
+			return nil, errors.New("Failed to find template dir:" + templates)
 		}
-	} else {
-		http.NotFound(writer, request)
-	}
 
+		if !info.IsDir() {
+			return nil, errors.New("Path must be a directory:" + templates)
+		}
+
+		t, err := template.ParseGlob(templates + "/*.html")
+		if err != nil {
+			return nil, err
+		}
+		return t, err
+
+	} else {
+		sub, err := fs.Sub(files, "files/templates")
+		if err != nil {
+			return nil, err
+		}
+		log.Debug().Msg("Loading templates from embed")
+		t, err := template.ParseFS(sub, "*.html")
+		if err != nil {
+			return nil, err
+		}
+		return t, err
+	}
+}
+
+func (ui *Options) ServeStatic() (http.Handler, error) {
+
+	if ui.UIFilePath != "" {
+		staticFiles := filepath.Join(ui.UIFilePath, "static")
+
+		info, err := os.Stat(staticFiles)
+		if err != nil {
+			return nil, errors.New("Failed to find static files dir:" + staticFiles)
+		}
+
+		if !info.IsDir() {
+			return nil, errors.New("Path must be a directory:" + staticFiles)
+		}
+
+		return http.FileServer(http.Dir(staticFiles)), nil
+	} else {
+		sub, err := fs.Sub(files, "files")
+		if err != nil {
+			return nil, err
+		}
+		return http.FileServer(http.FS(sub)), nil
+	}
 }
 
 func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
@@ -106,6 +168,7 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 
 	summaries, err := terraform.ReadDir(dir)
 	if err != nil {
+		log.Debug().Err(err).Str("dir", dir).Msg("could not read data")
 		http.NotFound(writer, request)
 		return
 	}
@@ -118,51 +181,5 @@ func (ui *Options) Render(writer http.ResponseWriter, request *http.Request) {
 	err = ui.templates.ExecuteTemplate(writer, "index.html", data)
 	if err != nil {
 		log.Error().Err(err).Msg("Error evaluating template")
-	}
-}
-
-func mimetype(file string) string {
-	i := strings.LastIndex(strings.ToLower(file), ".")
-	if i < 1 {
-		return "text/plain"
-	}
-
-	s := file[i+1:]
-	log.Debug().Str("path", file).Str("ext", s).Msg("Finding mimetype")
-	switch s {
-	case "jpg":
-		return "image/jpg"
-	case "png":
-		return "image/png"
-	case "css":
-		return "text/css"
-	default:
-		return "text/plain"
-	}
-}
-
-func serveStaticFile(writer http.ResponseWriter, request *http.Request, path string, log zerolog.Logger) bool {
-	writer.Header().Add("Content-Type", mimetype(path))
-	p := make([]byte, 2048)
-	f, err := os.Open(path)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		http.NotFound(writer, request)
-		return true
-	}
-	defer f.Close()
-
-	for {
-		n, err := f.Read(p)
-		switch {
-		case err == io.EOF:
-			return true
-		case n == 0:
-			return true
-		case err == nil:
-			writer.Write(p[:n])
-		default:
-			log.Error().Err(err).Msg("Error reading file during response")
-		}
 	}
 }

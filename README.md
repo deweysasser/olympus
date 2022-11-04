@@ -156,6 +156,7 @@ server needs.
 * secure communication between agent and server with hashed, pre-shared secrets
 * use https://github.com/shirou/gopsutil or https://github.com/mackerelio/go-osstat have the
   agent hit a target CPU instead of a fixed number of parallel processes
+* Be able to compare to previous applies/times/SHAs
 
 ## Milestones
 

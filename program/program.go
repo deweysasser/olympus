@@ -3,8 +3,8 @@ package program
 import (
 	"fmt"
 	"github.com/alecthomas/kong"
-	"github.com/deweysasser/olympus/program/node"
 	poc_server "github.com/deweysasser/olympus/program/poc-server"
+	"github.com/deweysasser/olympus/program/run"
 	"github.com/deweysasser/olympus/program/server"
 	"github.com/deweysasser/olympus/program/ui"
 	"github.com/mattn/go-colorable"
@@ -20,10 +20,10 @@ type Options struct {
 	Version bool `help:"Show program version"`
 	// VersionCmd VersionCmd `name:"version" cmd:"" help:"show program version"`
 
-	PlanServer poc_server.Options `cmd:"" help:"Run the data poc-server"`
-	Server     server.Options     `cmd:"" help:"Run the data server"`
-	UI         ui.Options         `cmd:"" help:"run the web UI poc-server"`
-	Node       node.Options       `cmd:"" help:"Run the node local process to make plans and upload them to the poc-server"`
+	Server  poc_server.Options `cmd:"" help:"Run the data poc-server"`
+	Server2 server.Options     `cmd:"" help:"Run the (under development) data server" hidden:"1"`
+	UI      ui.Options         `cmd:"" help:"run the web UI poc-server"`
+	RunCmd  run.Options        `cmd:"" help:"Run the run local process to make plans and upload them to the poc-server"`
 
 	Debug        bool   `group:"Info" help:"Show debugging information"`
 	OutputFormat string `group:"Info" enum:"auto,jsonl,terminal" default:"auto" help:"How to show program output (auto|terminal|jsonl)"`

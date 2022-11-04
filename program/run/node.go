@@ -1,4 +1,4 @@
-package node
+package run
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ import (
 )
 
 type Options struct {
-	Collector   string    `help:"collector address" default:"http://localhost:8081"`
+	Collector   string    `help:"collector address" default:"http://localhost:8080/plan"`
 	Terraform   Terraform `embed:"" prefix:"terraform."`
 	Parallel    int       `help:"Number of processes to run in parallel" default:"1"`
 	Directories []string  `arg:"" help:"Directories in which to run terraform"`
@@ -68,7 +68,7 @@ func (options *Options) Run() error {
 	var total time.Duration
 	var count int64
 	for d := range durations {
-		total = total + d
+		total += d
 		count++
 		fmt.Print(" ", d.String())
 	}
