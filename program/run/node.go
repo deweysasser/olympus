@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/acarl005/stripansi"
 	"github.com/deweysasser/olympus/git"
 	"github.com/deweysasser/olympus/run"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -20,18 +21,12 @@ import (
 )
 
 type Options struct {
-	Collector   string    `help:"collector address" default:"http://localhost:8080/plan"`
-	Terraform   Terraform `embed:"" prefix:"terraform."`
-	Parallel    int       `help:"Number of processes to run in parallel" default:"1"`
-	Directories []string  `arg:"" help:"Directories in which to run terraform"`
-	ClipLast    int       `help:"Number of directories from the end path to use sending to poc-server"`
-}
-
-type Terraform struct {
-	PlanCommand     string        `aliases:"plan" help:"Command to run in the terraform directory to produce the plan" default:"terraform plan -o plan.bin"`
-	ShowPlanCommand string        `aliases:"show-plan" help:"Command to run to output the plan in terraform json" default:"terraform show plan --json plan.bin"`
-	PlanFile        string        `aliases:"file" help:"Name of the created plan file" default:"plan.bin"`
-	RunTimeout      time.Duration `help:"Maximum time to allow a command to run" default:"5m"`
+	Collector   string        `help:"collector address" default:"http://localhost:8080/plan"`
+	Command     []string      `sep:";" help:"sequences of commands to generate a plan JSON.  The final command should generate a terraform JSON format plan output" default:"terraform plan; terraform show -json plan"`
+	RunTimeout  time.Duration `help:"Maximum time to allow a command to run" default:"5m"`
+	Parallel    int           `help:"Number of processes to run in parallel" default:"1"`
+	Directories []string      `arg:"" help:"Directories in which to run terraform"`
+	ClipLast    int           `help:"Number of directories from the end path to use sending to poc-server"`
 }
 
 func (options *Options) Run() error {
@@ -129,40 +124,55 @@ func (options *Options) processDir(dir string) {
 }
 
 func (options *Options) getPlan(dir string) (*tfjson.Plan, error) {
-	cmd := strings.Split(options.Terraform.PlanCommand, " ")
-	ctx, cancel := context.WithTimeout(context.Background(), options.Terraform.RunTimeout+60*time.Second)
+
+	var env []string
+
+	for _, e := range os.Environ() {
+		if !strings.HasPrefix(e, "TERM=") {
+			env = append(env, e)
+		}
+	}
+
+	for _, c := range options.Command[0 : len(options.Command)-1] {
+
+		cmd := strings.Split(strings.TrimSpace(c), " ")
+		ctx, cancel := context.WithTimeout(context.Background(), options.RunTimeout+60*time.Second)
+		defer cancel()
+
+		command := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
+		command.Dir = dir
+		command.Env = env
+
+		log := log.Logger.With().Str("dir", dir).Logger()
+
+		var err error
+
+		clog := log.With().Str("command", strings.Join(cmd, " ")).Logger()
+
+		clog.Debug().Msg("running command")
+
+		done := sigintAfter(options, command)
+		bytes, err := command.CombinedOutput()
+		done()
+		if err != nil {
+			log.Error().Err(err).Str("command", command.String()).Str("output", stripansi.Strip(string(bytes))).Msg("Error running command")
+
+			return nil, err
+		}
+	}
+
+	cmd := strings.Split(strings.TrimSpace(options.Command[len(options.Command)-1]), " ")
+	ctx, cancel := context.WithTimeout(context.Background(), options.RunTimeout)
 	defer cancel()
 
 	command := exec.CommandContext(ctx, cmd[0], cmd[1:]...)
 	command.Dir = dir
-
-	log := log.Logger.With().Str("dir", dir).Logger()
-
-	var err error
+	command.Env = env
 
 	clog := log.With().Str("command", strings.Join(cmd, " ")).Logger()
 
 	clog.Debug().Msg("running command")
-
 	done := sigintAfter(options, command)
-	err = command.Run()
-	done()
-	if err != nil {
-		log.Error().Err(err).Msg("Error running command")
-		return nil, err
-	}
-
-	cmd = strings.Split(options.Terraform.ShowPlanCommand, " ")
-	ctx, cancel = context.WithTimeout(context.Background(), options.Terraform.RunTimeout)
-	defer cancel()
-
-	command = exec.CommandContext(ctx, cmd[0], cmd[1:]...)
-	command.Dir = dir
-
-	clog = log.With().Str("command", strings.Join(cmd, " ")).Logger()
-
-	clog.Debug().Msg("running command")
-	done = sigintAfter(options, command)
 	bytes, err := command.Output()
 	done()
 
@@ -189,8 +199,8 @@ func sigintAfter(options *Options, command *exec.Cmd) func() {
 		select {
 		case <-done:
 			return
-		case <-time.After(options.Terraform.RunTimeout):
-			log.Debug().Str("timeout", options.Terraform.RunTimeout.String()).Msg("command exceeded run time.  Sending interrupt")
+		case <-time.After(options.RunTimeout):
+			log.Debug().Str("timeout", options.RunTimeout.String()).Msg("command exceeded run time.  Sending interrupt")
 			command.Process.Signal(syscall.SIGINT)
 		}
 	}()

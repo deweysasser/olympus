@@ -23,7 +23,7 @@ type Options struct {
 	Server  poc_server.Options `cmd:"" help:"Run the data poc-server"`
 	Server2 server.Options     `cmd:"" help:"Run the (under development) data server" hidden:"1"`
 	UI      ui.Options         `cmd:"" help:"run the web UI poc-server"`
-	RunCmd  run.Options        `cmd:"" help:"Run the run local process to make plans and upload them to the poc-server"`
+	RunCmd  run.Options        `cmd:"" name:"run"  help:"Run the run local process to make plans and upload them to the poc-server"`
 
 	Debug        bool   `group:"Info" help:"Show debugging information"`
 	OutputFormat string `group:"Info" enum:"auto,jsonl,terminal" default:"auto" help:"How to show program output (auto|terminal|jsonl)"`
