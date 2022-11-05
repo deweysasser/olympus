@@ -12,17 +12,17 @@ jobs:
     name: Run checks and build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{env.GO_VERSION}}
 
       - name: Vet
         run: make vet
 
-# TODO:  produce some sharable test data and re-enable this
+# Release the PoC, the real code is not yet read and passing tests
 #      - name: Test
 #        run: make test
 
@@ -32,10 +32,10 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{env.GO_VERSION}}
 
