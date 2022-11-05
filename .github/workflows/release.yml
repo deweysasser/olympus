@@ -52,6 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
+      - docker-build
     steps:
     - uses: actions/checkout@v2
       with:
