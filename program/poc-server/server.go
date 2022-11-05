@@ -48,13 +48,16 @@ func (o *Options) createServer() (*mux.Router, error) {
 		}
 	})
 
-	server.PathPrefix("/plan").Methods("POST").HandlerFunc(o.receive)
+	server.PathPrefix("/plan").
+		Methods("POST").
+		Handler(http.StripPrefix("/plan",
+			http.HandlerFunc(o.receive)))
 
 	return server, nil
 }
 
 func (o *Options) receive(writer http.ResponseWriter, request *http.Request) {
-	path := filepath.Join(o.DataPath, request.RequestURI[1:])
+	path := filepath.Join(o.DataPath, request.URL.Path[1:])
 	log := log.With().Str("path", path).Logger()
 
 	info, err := os.Stat(path)

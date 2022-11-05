@@ -22,7 +22,12 @@ func RequestLogger(next http.Handler) http.Handler {
 		lrw := &loggingResponseWriter{w, 200}
 		start := time.Now()
 		next.ServeHTTP(lrw, r)
-		log.Info().Str("uri", r.RequestURI).Dur("duration", time.Since(start)).Int("status", lrw.statusCode).Msg("handled")
+		log.Info().
+			Str("uri", r.RequestURI).
+			Str("method", r.Method).
+			Dur("duration", time.Since(start)).
+			Int("status", lrw.statusCode).
+			Msg("handled")
 	})
 }
 

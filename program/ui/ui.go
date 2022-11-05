@@ -94,7 +94,7 @@ func (ui *Options) Router() (*mux.Router, error) {
 	}
 
 	server.PathPrefix("/static").Handler(fs)
-	server.PathPrefix("/").HandlerFunc(ui.Render)
+	server.PathPrefix("/").Methods("GET").HandlerFunc(ui.Render)
 
 	return server, nil
 }
