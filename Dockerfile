@@ -9,12 +9,15 @@ WORKDIR /src
 
 COPY . .
 RUN GOBIN=/output make install VERSION=$VERSION
-RUN PROGRAM=$(ls /output); echo "#!/bin/sh\nexec '/usr/bin/$PROGRAM' \"\$@\"" > /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
+RUN mkdir -p /received && chown 1000 /received
+
 
 
 FROM gcr.io/distroless/base:latest
 ARG PROGRAM=nothing
 
 COPY --from=builder /output/${PROGRAM} /
+COPY --from=builder /received /received
 USER 1000
 ENTRYPOINT [""]
+CMD ["server"]
