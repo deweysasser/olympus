@@ -12,7 +12,7 @@ going to change.
 ## Install
 
 * `docker pull ghcr.io/deweysasser/olympus:latest`
-* Homebrew: `brew install deweysasser/tap`
+* Homebrew: `brew install deweysasser/tap/olympus`
 * Dowload binaries from [the github release page](https://github.com/deweysasser/olympus/releases/)
 * If all else fails, you can `go get github.com/deweysasser/olympus@latest` (but you'll lose version
   info)
