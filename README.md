@@ -11,22 +11,47 @@ going to change.
 
 ## Install
 
-```shell
-go get github.com/deweysasser/olympus@latest
-```
+* `docker pull ghcr.io/deweysasser/olympus:latest`
+* Homebrew: `brew install deweysasser/tap`
+* Dowload binaries from [the github release page](https://github.com/deweysasser/olympus/releases/)
+* If all else fails, you can `go get github.com/deweysasser/olympus@latest` (but you'll lose version
+  info)
 
 ## Quickstart
 
-```shell
+### Run a server
 
+```shell
+docker run -d --name olympus -p 8080:8080 -v olympus:/received ghcr.io/deweysasser/olympus:latest
+```
+
+NOTE:  the docker image stores it's data in /received, and runs under UID 1000. You can map a
+persistant
+
+or
+
+```shell
 olympus server &
+```
+
+### Send it some data
+
+```shell
 olympus run --parallel 5 ~/code/terraform_projects/*/*
+```
+
+(It's really not practical to do this step in a container -- you'd have to map all your terraform
+magic into the container, and the olympus container is NOT built that way at the moment.)
+
+### Look at it
+
+```shell
 open http://localhost:8080
 ```
 
 ## Overview
 
-![](./doc/OlympusChangeDetail.png)
+![Olympus Screen Capture](./doc/OlympusChangeDetail.png)
 
 This is currently an experimental project in Terraform and GitOps to support visualization of status
 across many environments and components. Agents can run terraform plans for components in
